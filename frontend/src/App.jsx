@@ -7,6 +7,7 @@ const API_BASE_URL = 'http://localhost:3001/api';
 function App() {
   const [events, setEvents] = useState([]);
   const [endpoints, setEndpoints] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const fetchEvents = async () => {
@@ -27,12 +28,23 @@ function App() {
     }
   };
 
+  const fetchAlerts = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/alerts`);
+      setAlerts(response.data);
+    } catch (error) {
+      console.error('Error fetching alerts:', error);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
     fetchEndpoints();
+    fetchAlerts();
     const interval = setInterval(() => {
       fetchEvents();
       fetchEndpoints();
+      fetchAlerts();
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -60,6 +72,12 @@ function App() {
               <Server size={20} /> Endpoints
             </button>
             <button 
+              onClick={() => setActiveTab('alerts')}
+              className={`flex items-center gap-3 p-3 rounded-lg transition ${activeTab === 'alerts' ? 'bg-blue-600' : 'hover:bg-gray-700'}`}
+            >
+              <AlertCircle size={20} /> Alerts
+            </button>
+            <button 
               onClick={() => setActiveTab('events')}
               className={`flex items-center gap-3 p-3 rounded-lg transition ${activeTab === 'events' ? 'bg-blue-600' : 'hover:bg-gray-700'}`}
             >
@@ -84,7 +102,7 @@ function App() {
                 </div>
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
                   <h3 className="text-gray-400 text-sm uppercase">Threats Detected</h3>
-                  <p className="text-3xl font-bold text-red-500">0</p>
+                  <p className="text-3xl font-bold text-red-500">{alerts.length}</p>
                 </div>
               </div>
 
@@ -159,6 +177,45 @@ function App() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'alerts' && (
+            <div className="flex flex-col gap-8">
+              <h2 className="text-2xl font-bold">Security Alerts</h2>
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="text-gray-400 border-b border-gray-700">
+                      <tr>
+                        <th className="py-3 px-4">Severity</th>
+                        <th className="py-3 px-4">Title</th>
+                        <th className="py-3 px-4">Host</th>
+                        <th className="py-3 px-4">MITRE</th>
+                        <th className="py-3 px-4">Created At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {alerts.slice().reverse().map((alert, idx) => (
+                        <tr key={idx} className="border-b border-gray-700 hover:bg-gray-750">
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${alert.severity === 'high' ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}`}>
+                              {alert.severity}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-semibold">{alert.title}</div>
+                            <div className="text-xs text-gray-400">{alert.description}</div>
+                          </td>
+                          <td className="py-3 px-4 text-sm">{alert.host}</td>
+                          <td className="py-3 px-4 text-sm font-mono text-blue-400">{alert.mitreTechniqueId}</td>
+                          <td className="py-3 px-4 text-sm">{new Date(alert.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
