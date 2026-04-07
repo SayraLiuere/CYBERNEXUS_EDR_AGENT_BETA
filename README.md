@@ -82,11 +82,18 @@ This prototype follows a **telemetry-first** approach, ensuring that all endpoin
   - Implemented `evaluateRulesForEvent` helper with rules for Mimikatz detection (T1003) and Obfuscated PowerShell (T1059).
   - Integrated rule evaluation into the `POST /api/events` flow.
   - Added "Alerts" tab to the React frontend with a dedicated incidents table and dashboard counter.
+  - **Enhanced Visibility**: Telemetry logs now show severity badges and a "TRIGGERED ALERT" label for suspicious events.
+  - **Dashboard Widget**: Added a "Recent Alerts" section to the main dashboard for immediate awareness.
 - **How to Test Alerts**:
   - Send a suspicious Mimikatz process event:
     ```powershell
     $body = '[{"type": "process_start", "timestamp": "2026-04-07T12:39:00Z", "host": "WIN10LAB-01", "deviceId": "WIN10LAB-01", "user": "WIN10LAB\\Student", "severity": "info", "source": "sysmon", "data": {"pid": 9999, "ppid": 123, "image": "C:\\temp\\mimikatz.exe", "commandLine": "mimikatz.exe sekurlsa::logonpasswords"}}]'
     Invoke-RestMethod -Uri "http://localhost:3001/api/events" -Method Post -Body $body -ContentType "application/json"
     ```
-  - Verify the alert appears in the "Alerts" tab with **High** severity.
+  - Verify:
+    1. The "Threats Detected" counter increases.
+    2. A new entry appears in the "Recent Alerts" dashboard widget.
+    3. The event in "Telemetry Logs" is highlighted in red with a "High" severity badge.
+    4. The full alert details appear in the "Alerts" tab.
+
 

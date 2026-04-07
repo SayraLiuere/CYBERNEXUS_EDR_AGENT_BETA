@@ -72,9 +72,15 @@ app.post('/api/events', (req, res) => {
 
         newEvents.forEach(event => {
             event.id = events.length + 1;
-            events.push(event);
-
+            
             const newAlerts = evaluateRulesForEvent(event);
+            if (newAlerts.length > 0) {
+                event.isAlert = true;
+                event.alertSeverity = newAlerts[0].severity;
+                event.alertTitle = newAlerts[0].title;
+            }
+            
+            events.push(event);
             newAlerts.forEach(a => alerts.push(a));
             totalAlerts += newAlerts.length;
         });

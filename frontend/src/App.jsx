@@ -107,6 +107,26 @@ function App() {
               </div>
 
               <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3 className="text-lg font-semibold mb-4">Recent Alerts</h3>
+                <div className="flex flex-col gap-3">
+                  {alerts.length === 0 ? (
+                    <p className="text-gray-500 italic text-sm">No alerts detected yet.</p>
+                  ) : (
+                    alerts.slice(-3).reverse().map((alert, idx) => (
+                      <div key={idx} className="flex items-center gap-4 bg-gray-750 p-3 rounded-lg border-l-4 border-red-500">
+                        <AlertCircle className="text-red-500" size={20} />
+                        <div className="flex-1">
+                          <h4 className="text-sm font-bold">{alert.title}</h4>
+                          <p className="text-xs text-gray-400">{alert.host} • {new Date(alert.createdAt).toLocaleTimeString()}</p>
+                        </div>
+                        <span className="text-[10px] bg-red-900 text-red-300 px-2 py-0.5 rounded uppercase font-bold">{alert.severity}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
                 <h3 className="text-lg font-semibold mb-4">Recent Events</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
@@ -229,6 +249,7 @@ function App() {
                   <table className="w-full text-left">
                     <thead className="text-gray-400 border-b border-gray-700">
                       <tr>
+                        <th className="py-3 px-4">Severity</th>
                         <th className="py-3 px-4">Type</th>
                         <th className="py-3 px-4">Timestamp</th>
                         <th className="py-3 px-4">Host</th>
@@ -237,9 +258,23 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {events.map((event, idx) => (
-                        <tr key={idx} className="border-b border-gray-700 hover:bg-gray-750">
-                          <td className="py-3 px-4 font-mono text-sm text-blue-300">{event.type}</td>
+                      {events.slice().reverse().map((event, idx) => (
+                        <tr key={idx} className={`border-b border-gray-700 hover:bg-gray-750 ${event.isAlert ? 'bg-red-900/10' : ''}`}>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              event.isAlert || event.severity === 'high' ? 'bg-red-900 text-red-300' : 
+                              event.severity === 'warning' || event.alertSeverity === 'medium' ? 'bg-yellow-900 text-yellow-300' : 
+                              'bg-blue-900 text-blue-300'
+                            }`}>
+                              {event.alertSeverity || event.severity || 'info'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-sm">
+                            <div className="flex flex-col">
+                              <span className="text-blue-300">{event.type}</span>
+                              {event.isAlert && <span className="text-[10px] text-red-400 font-bold uppercase">ALERT TRIGGERED</span>}
+                            </div>
+                          </td>
                           <td className="py-3 px-4 text-sm">{new Date(event.timestamp).toLocaleString()}</td>
                           <td className="py-3 px-4 text-sm">{event.host}</td>
                           <td className="py-3 px-4 text-sm">{event.user}</td>
