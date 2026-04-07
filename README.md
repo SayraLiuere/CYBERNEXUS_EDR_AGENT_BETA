@@ -61,3 +61,32 @@ dotnet run
 
 ## 🔒 Security Design
 This prototype follows a **telemetry-first** approach, ensuring that all endpoint activity is normalized into a consistent schema, making it easy to build detection logic and visualize attack timelines.
+
+## 📝 Progress Log
+
+### **Commit 1: Initial Prototype (Telemetry-First Design)**
+- **What Changed**: 
+  - Implemented core C# Agent DTOs and `AgentClient`.
+  - Created Node.js/Express backend with `/api/events`, `/api/heartbeat`, and `/api/endpoints` endpoints.
+  - Built initial React dashboard with "Security Overview", "Managed Endpoints", and "Telemetry Logs" tabs.
+- **How to Test**:
+  - Run the backend (`node backend/index.js`) and frontend (`npm run dev`).
+  - Send a manual heartbeat:
+    ```powershell
+    $heartbeat = '{"deviceId": "WIN10LAB-01", "host": "WIN10LAB-01", "agentVersion": "0.1.0", "lastSeen": "2026-04-07T12:39:00Z", "status": "healthy", "os": "Windows 10", "cpuUsage": 0.2, "ramUsage": 0.5}'; Invoke-RestMethod -Uri "http://localhost:3001/api/heartbeat" -Method Post -Body $heartbeat -ContentType "application/json"
+    ```
+
+### **Commit 2: Real-Time Alerts System**
+- **What Changed**:
+  - Added in-memory `alerts` store to the backend.
+  - Implemented `evaluateRulesForEvent` helper with rules for Mimikatz detection (T1003) and Obfuscated PowerShell (T1059).
+  - Integrated rule evaluation into the `POST /api/events` flow.
+  - Added "Alerts" tab to the React frontend with a dedicated incidents table and dashboard counter.
+- **How to Test Alerts**:
+  - Send a suspicious Mimikatz process event:
+    ```powershell
+    $body = '[{"type": "process_start", "timestamp": "2026-04-07T12:39:00Z", "host": "WIN10LAB-01", "deviceId": "WIN10LAB-01", "user": "WIN10LAB\\Student", "severity": "info", "source": "sysmon", "data": {"pid": 9999, "ppid": 123, "image": "C:\\temp\\mimikatz.exe", "commandLine": "mimikatz.exe sekurlsa::logonpasswords"}}]'
+    Invoke-RestMethod -Uri "http://localhost:3001/api/events" -Method Post -Body $body -ContentType "application/json"
+    ```
+  - Verify the alert appears in the "Alerts" tab with **High** severity.
+
